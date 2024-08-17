@@ -10,7 +10,7 @@ def main():
             page.screenshot(path='debug.png')
             browser.close()
         except Exception as e:
-            print(e)
+            print(f"Exception occurred: {str(e)}")
 
 if __name__ == "__main__":
     main()
