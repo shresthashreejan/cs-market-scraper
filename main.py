@@ -7,6 +7,8 @@ def main():
             page = browser.new_page()
             page.goto('https://skinflow.gg')
             page.get_by_role("navigation").get_by_role("link", name="Buy").click()
+            page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill('50')
+            page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').press('Enter')
             page.screenshot(path='debug.png')
             browser.close()
         except Exception as e:
