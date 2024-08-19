@@ -9,6 +9,15 @@ def main():
             page.get_by_role("navigation").get_by_role("link", name="Buy").click()
             page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill('50')
             page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').press('Enter')
+
+            tradeitems_selector = '#tradeItems .tradeItem'
+            page.wait_for_selector(tradeitems_selector, state='visible', timeout=5000)
+
+            tradeitems = page.query_selector_all(tradeitems_selector)
+            for item in tradeitems:
+                item.click(button='right')
+                page.mouse.click(x=0, y=0)
+
             page.screenshot(path='debug.png')
             browser.close()
         except Exception as e:
