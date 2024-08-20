@@ -16,6 +16,11 @@ def main():
             tradeitems = page.query_selector_all(tradeitems_selector)
             for item in tradeitems:
                 item.click(button='right')
+                button = page.get_by_role("button", name="ADD TO CART")
+                if button.is_visible():
+                    print("Button is visible")
+                else:
+                    print("Button is not visible")
                 page.mouse.click(x=0, y=0)
 
             page.screenshot(path='debug.png')
