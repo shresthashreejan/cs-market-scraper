@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 import time
 import re
+import pandas as pd
 
 def load_all_cards(page):
     duration = 20
@@ -15,9 +16,9 @@ def load_all_cards(page):
         """, '#tradeItems')
         time.sleep(0.1)
 
-def clean_item_name(item_name):
+def clean_name(item_name):
     stattrak = 'No'
-    
+
     if '★' in item_name:
         item_name = item_name.replace('★', '').strip()
 
@@ -35,6 +36,7 @@ def clean_item_name(item_name):
     return item_name, stattrak, wear
 
 def main():
+    data = []
     with sync_playwright() as p:
         try:
             browser = p.chromium.launch(headless=False, slow_mo=10)
@@ -56,19 +58,39 @@ def main():
                 if button.is_visible():
                     price_element = item.query_selector('p.font-normal.text-md.text-white\\/80.leading-\\[20px\\]')
                     if price_element:
-
                         item_name = page.query_selector('p.inline.font-bold').text_content()
-                        cleaned_name, stattrak, wear = clean_item_name(item_name)
-                        price_text = price_element.text_content().strip()
-
+                        name, stattrak, wear = clean_name(item_name)
+                        price = price_element.text_content().strip()
                         float_element = item.query_selector('div.flex.w-full.justify-between.px-3 > p > span')
                         if float_element:
                             float_value = float_element.text_content()
+                        else:
+                            float_value = ''
 
-                        print(f"NAME: {cleaned_name} WEAR: {wear} FLOAT: {float_value} STATTRAK: {stattrak} PRICE: {price_text}")
+                        data.append({
+                            'NAME': name,
+                            'WEAR': wear,
+                            'FLOAT': float_value,
+                            'STATTRAK': stattrak,
+                            'SKINFLOW_PRICE': price
+                        })
+
+                        print(f"NAME: {name} WEAR: {wear} FLOAT: {float_value} STATTRAK: {stattrak} SKINFLOW_PRICE: {price}")
                 page.mouse.click(x=0, y=0)
 
-            page.screenshot(path='debug.png')
+            csfloat = browser.new_page()
+            csfloat.goto('https://csfloat.com/search')
+            csfloat.locator('body > app-root > div > div.content > app-market-search > app-search > app-filter-content-container > div > div.content > div > div > app-search-bar > div > div.sort > mat-form-field > div.mat-mdc-text-field-wrapper.mdc-text-field.mdc-text-field--filled > div.mat-mdc-form-field-flex').click()
+            csfloat.locator('#mat-option-19 > span').click()
+            csfloat.locator('#mat-button-toggle-16-button > span').click()
+            for item in data:
+                csfloat.locator('#mat-input-5').fill(item.NAME)
+                csfloat.locator('#mat-input-5').press('Enter')
+            
+            csfloat.screenshot(path='debug.png')
+
+            df = pd.DataFrame(data)
+            df.to_csv('csdata.csv', index=False)
             browser.close()
         except Exception as e:
             print(f"Exception occurred: {str(e)}")
