@@ -1,7 +1,12 @@
 from playwright.sync_api import sync_playwright
+from dotenv import load_dotenv
 import time
 import re
 import pandas as pd
+import os
+
+load_dotenv()
+username = os.getenv('USERNAME')
 
 def load_all_cards(page):
     duration = 20
@@ -32,14 +37,15 @@ def clean_name(item_name):
         item_name = item_name[:match.start()].strip()
     else:
         wear = ''
-    
+
     return item_name, stattrak, wear
 
 def main():
     data = []
     with sync_playwright() as p:
         try:
-            browser = p.chromium.launch(headless=False, slow_mo=10)
+            user_data_dir = f'/home/{username}/.config/chromium/Default'
+            browser = p.chromium.launch_persistent_context(user_data_dir=user_data_dir, headless=False, slow_mo=10)
             page = browser.new_page()
             page.goto('https://skinflow.gg')
             page.get_by_role("navigation").get_by_role("link", name="Buy").click()
@@ -79,14 +85,13 @@ def main():
                 page.mouse.click(x=0, y=0)
 
             csfloat = browser.new_page()
-            csfloat.goto('https://csfloat.com/search')
-            csfloat.locator('body > app-root > div > div.content > app-market-search > app-search > app-filter-content-container > div > div.content > div > div > app-search-bar > div > div.sort > mat-form-field > div.mat-mdc-text-field-wrapper.mdc-text-field.mdc-text-field--filled > div.mat-mdc-form-field-flex').click()
-            csfloat.locator('#mat-option-19 > span').click()
-            csfloat.locator('#mat-button-toggle-16-button > span').click()
+            csfloat.goto('https://csfloat.com/search?sort_by=lowest_price&type=buy_now')
+            csfloat.mouse.click(x=0, y=0)
+            csfloat.mouse.click(x=0, y=0)
             for item in data:
-                csfloat.locator('#mat-input-5').fill(item.NAME)
-                csfloat.locator('#mat-input-5').press('Enter')
-            
+                csfloat.locator('body > app-root > div > div.content > app-market-search > app-search > app-filter-content-container > div > div.content > div > div > app-search-bar > div > div.filter-btn > button > span.mat-mdc-button-touch-target').click()
+                csfloat.locator('#mat-input-11').type(item['NAME'])
+                csfloat.locator('#mat-input-11').press('Enter')
             csfloat.screenshot(path='debug.png')
 
             df = pd.DataFrame(data)
