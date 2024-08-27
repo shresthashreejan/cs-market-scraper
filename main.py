@@ -8,6 +8,14 @@ import os
 load_dotenv()
 username = os.getenv('USERNAME')
 
+float_to_index = {
+    'Factory New': 1,
+    'Minimal Wear': 2,
+    'Field-Tested': 3,
+    'Well-Worn': 4,
+    'Battle-Scarred': 5
+}
+
 def load_all_cards(page):
     duration = 20
     start_time = time.time()
@@ -51,6 +59,9 @@ def main():
             page.get_by_role("navigation").get_by_role("link", name="Buy").click()
             page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill('50')
             page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').press('Enter')
+            page.locator('div.gap-2:nth-child(5) > button:nth-child(1)').click()
+            page.locator('div.hover\:bg-white\/10:nth-child(2) > input:nth-child(1)').click()
+            page.locator('div.hover\:bg-white\/10:nth-child(2) > input:nth-child(1)').click()
 
             load_all_cards(page)
 
@@ -90,9 +101,10 @@ def main():
             csfloat.mouse.click(x=0, y=0)
             for item in data:
                 csfloat.locator('body > app-root > div > div.content > app-market-search > app-search > app-filter-content-container > div > div.content > div > div > app-search-bar > div > div.filter-btn > button > span.mat-mdc-button-touch-target').click()
+                csfloat.locator('#mat-input-11').fill('')
                 csfloat.locator('#mat-input-11').type(item['NAME'])
                 csfloat.locator('#mat-input-11').press('Enter')
-            csfloat.screenshot(path='debug.png')
+                csfloat.keyboard.press('Escape')
 
             df = pd.DataFrame(data)
             df.to_csv('csdata.csv', index=False)
