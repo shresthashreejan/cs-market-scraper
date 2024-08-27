@@ -8,12 +8,12 @@ import os
 load_dotenv()
 username = os.getenv('USERNAME')
 
-float_to_index = {
-    'Factory New': 1,
-    'Minimal Wear': 2,
-    'Field-Tested': 3,
-    'Well-Worn': 4,
-    'Battle-Scarred': 5
+float_to_abbr = {
+    'Factory New': 'FN',
+    'Minimal Wear': 'MW',
+    'Field-Tested': 'FT',
+    'Well-Worn': 'WW',
+    'Battle-Scarred': 'BS'
 }
 
 def load_all_cards(page):
@@ -47,6 +47,15 @@ def clean_name(item_name):
         wear = ''
 
     return item_name, stattrak, wear
+
+def check_checkbox_state(csfloat, selector):
+    input_checked_class = 'mdc-checkbox--selected'
+    element = csfloat.query_selector(selector)
+    classes = element.get_attribute('class')
+    if input_checked_class in classes.split():
+        return True
+    else:
+        return False
 
 def main():
     data = []
@@ -104,7 +113,24 @@ def main():
                 csfloat.locator('#mat-input-11').fill('')
                 csfloat.locator('#mat-input-11').type(item['NAME'])
                 csfloat.locator('#mat-input-11').press('Enter')
-                csfloat.keyboard.press('Escape')
+
+                if item['STATTRAK'] == 'Yes':
+                    stattrak_selector = '#mat-mdc-checkbox-4-input'
+                    is_checked = check_checkbox_state(csfloat, stattrak_selector)
+                    if not is_checked:
+                        csfloat.locator(stattrak_selector).click()
+                if item['STATTRAK'] == 'No':
+                    normal_selector = '#mat-mdc-checkbox-6-input'
+                    is_checked = check_checkbox_state(csfloat, normal_selector)
+                    if not is_checked:
+                        csfloat.locator(normal_selector).click()
+
+                wear_val = item['WEAR']
+                if wear_val in float_to_abbr:
+                    abbr = float_to_abbr[wear_val]
+                    float_element = csfloat.get_by_role("complementary").get_by_text(abbr)
+                    float_element.click()
+                csfloat.mouse.click(x=500, y=500)
 
             df = pd.DataFrame(data)
             df.to_csv('csdata.csv', index=False)
