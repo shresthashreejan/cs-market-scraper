@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
+from datetime import datetime
 import time
 import re
 import pandas as pd
@@ -66,8 +67,10 @@ def main():
             page = browser.new_page()
             page.goto('https://skinflow.gg')
             page.get_by_role("navigation").get_by_role("link", name="Buy").click()
-            page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill('50')
+            page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill('500')
             page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').press('Enter')
+            page.locator('label.duration-50:nth-child(3) > input:nth-child(1)').fill('1000')
+            page.locator('label.duration-50:nth-child(3) > input:nth-child(1)').press('Enter')
             page.locator('div.gap-2:nth-child(5) > button:nth-child(1)').click()
             page.locator('div.hover\:bg-white\/10:nth-child(2) > input:nth-child(1)').click()
             page.locator('div.hover\:bg-white\/10:nth-child(2) > input:nth-child(1)').click()
@@ -98,10 +101,10 @@ def main():
                             'WEAR': wear,
                             'FLOAT': float_value,
                             'STATTRAK': stattrak,
-                            'SKINFLOW_PRICE': price
+                            'SKINFLOW_PRICE': price,
+                            'CSFLOAT_PRICE': '',
+                            '%': ''
                         })
-
-                        print(f"NAME: {name} WEAR: {wear} FLOAT: {float_value} STATTRAK: {stattrak} SKINFLOW_PRICE: {price}")
                 page.mouse.click(x=0, y=0)
 
             csfloat = browser.new_page()
@@ -131,9 +134,27 @@ def main():
                     float_element = csfloat.get_by_role("complementary").get_by_text(abbr)
                     float_element.click()
                 csfloat.mouse.click(x=500, y=500)
+                price_selector = 'item-card.flex-item:nth-child(1) > mat-card:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(1)'
+                csfloat.wait_for_selector(price_selector, state='visible', timeout=5000)
+                card = csfloat.query_selector(price_selector)
+                if card:
+                    csfloat_price = card.inner_text()
+                    if csfloat_price:
+                        item['CSFLOAT_PRICE'] = csfloat_price
+                        sale_price = csfloat_price.replace(',', '')
+                        sale_price = float(sale_price.strip('$'))
+                        sale_price = sale_price * 0.98
+                        cost_price = item['SKINFLOW_PRICE'].replace(',', '')
+                        cost_price = float(cost_price.strip('$'))
+                        percentage_difference = (sale_price - cost_price)/cost_price
+                        item['%'] = percentage_difference * 100
 
+            print(f"{item['NAME']} {item['WEAR']} {item['FLOAT']} {item['STATTRAK']} {item['SKINFLOW_PRICE']} {item['CSFLOAT_PRICE']} {item['%']}")
+
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'{timestamp}.csv'
             df = pd.DataFrame(data)
-            df.to_csv('csdata.csv', index=False)
+            df.to_csv(filename, index=False)
             browser.close()
         except Exception as e:
             print(f"Exception occurred: {str(e)}")
