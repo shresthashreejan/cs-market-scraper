@@ -134,6 +134,7 @@ def main():
                     float_element = csfloat.get_by_role("complementary").get_by_text(abbr)
                     float_element.click()
                 csfloat.mouse.click(x=500, y=500)
+                time.sleep(2)
                 price_selector = 'item-card.flex-item:nth-child(1) > mat-card:nth-child(1) > div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(1)'
                 csfloat.wait_for_selector(price_selector, state='visible', timeout=5000)
                 card = csfloat.query_selector(price_selector)
@@ -142,14 +143,15 @@ def main():
                     if csfloat_price:
                         item['CSFLOAT_PRICE'] = csfloat_price
                         sale_price = csfloat_price.replace(',', '')
-                        sale_price = float(sale_price.strip('$'))
+                        sale_price = sale_price.strip('$')
+                        sale_price = float(sale_price.strip())
                         sale_price = sale_price * 0.98
                         cost_price = item['SKINFLOW_PRICE'].replace(',', '')
-                        cost_price = float(cost_price.strip('$'))
+                        cost_price = cost_price.strip('$')
+                        cost_price = float(cost_price.strip())
                         percentage_difference = (sale_price - cost_price)/cost_price
                         item['%'] = percentage_difference * 100
-
-            print(f"{item['NAME']} {item['WEAR']} {item['FLOAT']} {item['STATTRAK']} {item['SKINFLOW_PRICE']} {item['CSFLOAT_PRICE']} {item['%']}")
+                print(f"{item['NAME']} {item['WEAR']} {item['FLOAT']} {item['STATTRAK']} {item['SKINFLOW_PRICE']} {item['CSFLOAT_PRICE']} {item['%']}")
 
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             filename = f'{timestamp}.csv'
