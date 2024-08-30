@@ -6,6 +6,9 @@ import re
 import pandas as pd
 import os
 
+min_price = "100"
+max_price = "150"
+
 load_dotenv()
 username = os.getenv('USERNAME')
 
@@ -67,9 +70,9 @@ def main():
             page = browser.new_page()
             page.goto('https://skinflow.gg')
             page.get_by_role("navigation").get_by_role("link", name="Buy").click()
-            page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill('500')
+            page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').fill(min_price)
             page.locator('input[type="number"][min="0"][step=".01"][class*="appearance:textfield"]').press('Enter')
-            page.locator('label.duration-50:nth-child(3) > input:nth-child(1)').fill('1000')
+            page.locator('label.duration-50:nth-child(3) > input:nth-child(1)').fill(max_price)
             page.locator('label.duration-50:nth-child(3) > input:nth-child(1)').press('Enter')
             page.locator('div.gap-2:nth-child(5) > button:nth-child(1)').click()
             page.locator('div.hover\:bg-white\/10:nth-child(2) > input:nth-child(1)').click()
@@ -150,11 +153,12 @@ def main():
                         cost_price = cost_price.strip('$')
                         cost_price = float(cost_price.strip())
                         percentage_difference = (sale_price - cost_price)/cost_price
-                        item['%'] = percentage_difference * 100
+                        item['%'] = round(percentage_difference * 100, 4)
                 print(f"{item['NAME']} {item['WEAR']} {item['FLOAT']} {item['STATTRAK']} {item['SKINFLOW_PRICE']} {item['CSFLOAT_PRICE']} {item['%']}")
 
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'{timestamp}.csv'
+            timestamp = datetime.now().strftime('%m-%d')
+            name = timestamp + " " + min_price + "-" + max_price
+            filename = f'{name}.csv'
             df = pd.DataFrame(data)
             df.to_csv(filename, index=False)
             browser.close()
