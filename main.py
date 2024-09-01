@@ -7,7 +7,7 @@ import pandas as pd
 import os
 
 min_price = "100"
-max_price = "150"
+max_price = "500"
 
 load_dotenv()
 username = os.getenv('USERNAME')
@@ -145,11 +145,11 @@ def main():
                     if card:
                         csfloat_price = card.inner_text()
                         if csfloat_price:
-                            item['CSFLOAT_PRICE'] = csfloat_price
                             sale_price = csfloat_price.replace(',', '')
                             sale_price = sale_price.strip('$')
                             sale_price = float(sale_price.strip())
                             sale_price = sale_price * 0.98
+                            item['CSFLOAT_PRICE'] = sale_price
                             cost_price = item['SKINFLOW_PRICE'].replace(',', '')
                             cost_price = cost_price.strip('$')
                             cost_price = float(cost_price.strip())
